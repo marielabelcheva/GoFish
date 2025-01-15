@@ -105,6 +105,22 @@ short findAPackInPlayersCollection(string power, Player& player)
 	return -1;
 }
 
+string fullNameOfPower(string power)
+{
+	return power == "2" ? "twoes" :
+		power == "3" ? "threes" :
+		power == "4" ? "fours" :
+		power == "5" ? "fives" :
+		power == "6" ? "sixes" :
+		power == "7" ? "sevens" :
+		power == "8" ? "eights" :
+		power == "9" ? "nines" :
+		power == "10" ? "tens" :
+		power == "J" ? "jacks" :
+		power == "Q" ? "queens" :
+		power == "K" ? "kings" : "aces";
+}
+
 void addCardToPlayersDeck(Card card, Player& player)
 {
 	short index = findCardInPlayersDeck(card.power, player);
@@ -170,22 +186,6 @@ void deal(vector<Card>& deck, Player& player)
 	{
 		draw(deck, player);
 	}
-}
-
-string fullNameOfPower(string power)
-{
-	return power == "2" ? "twoes" :
-		power == "3" ? "threes" :
-		power == "4" ? "fours" :
-		power == "5" ? "fives" :
-		power == "6" ? "sixes" :
-		power == "7" ? "sevens" :
-		power == "8" ? "eights" :
-		power == "9" ? "nines" :
-		power == "10" ? "tens" :
-		power == "J" ? "jacks" :
-		power == "Q" ? "queens" :
-		power == "K" ? "kings" : "aces";
 }
 
 void outputWhenCardsAreGiven(string power, Player& player)
