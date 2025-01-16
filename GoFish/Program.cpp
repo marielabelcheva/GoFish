@@ -132,29 +132,6 @@ void addCardToPlayersDeck(Card card, Player& player)
 	}
 
 	player.deckOfThePlayer[index].count += card.count;
-
-	if (player.deckOfThePlayer[index].count == CARDS_IN_A_PACK)
-	{
-		string power;
-
-		if (player.name == "player")
-		{
-			printPlayersDeck(player);
-
-			cout << "\nPut down a pack of ";
-			cin >> power;
-			cout << endl;
-		}
-		else
-		{
-			power = fullNameOfPower(player.deckOfThePlayer[index].power);
-			cout << "The computer puts down a pack of " << power << endl;
-		}
-
-		player.packs.push_back(player.deckOfThePlayer[index].power);
-
-		player.deckOfThePlayer.erase(player.deckOfThePlayer.begin() + index);
-	}
 }
 
 string draw(vector<Card>& deck, Player& player)
@@ -188,6 +165,42 @@ void deal(vector<Card>& deck, Player& player)
 	}
 }
 
+void addPackToPlayersCollection(Player& player)
+{
+	if (player.name == "player")
+	{
+		printPlayersDeck(player);
+	}
+
+	for (int i = 0; i < player.deckOfThePlayer.size(); i++)
+	{
+		if (player.deckOfThePlayer[i].count == CARDS_IN_A_PACK)
+		{
+			string power;
+
+			if (player.name == "player")
+			{
+				cout << "Put down a pack of ";
+				cin >> power;
+			}
+			else
+			{
+				power = fullNameOfPower(player.deckOfThePlayer[i].power);
+				cout << "The computer puts down a pack of " << power << endl;
+			}
+
+			player.packs.push_back(player.deckOfThePlayer[i].power);
+
+			player.deckOfThePlayer.erase(player.deckOfThePlayer.begin() + i);
+
+			if (player.name == "player")
+			{
+				printPlayersDeck(player);
+			}
+		}
+	}
+}
+
 void outputWhenCardsAreGiven(string power, Player& player)
 {
 	if (player.name == "computer")
@@ -198,7 +211,18 @@ void outputWhenCardsAreGiven(string power, Player& player)
 
 	cout << "Give ";
 	cin >> power;
-	cout << endl;
+}
+
+void outputWhenCardsAreNotGiven(string power, Player& player)
+{
+	if (player.name == "computer")
+	{
+		cout << "The " << player.name << " doesn't have " << fullNameOfPower(power) << endl;
+		return;
+	}
+
+	cout << "Don't have ";
+	cin >> power;
 }
 
 bool givePower(string power, Player& to, Player& from, short gamePart = 1)
@@ -225,7 +249,8 @@ bool givePower(string power, Player& to, Player& from, short gamePart = 1)
 		return true;
 	}
 
-	cout << "The " << from.name << " doesn't have " << fullNameOfPower(power) << endl;
+	outputWhenCardsAreNotGiven(power, from);
+
 	return false;
 }
 
@@ -244,32 +269,7 @@ void toLower(string& power)
 	}
 }
 
-void correctCard(string& power)
-{
-	toLower(power);
-
-	bool result = power == fullNameOfPower("2") ? true :
-		power == fullNameOfPower("3") ? true :
-		power == fullNameOfPower("4") ? true :
-		power == fullNameOfPower("5") ? true :
-		power == fullNameOfPower("6") ? true :
-		power == fullNameOfPower("7") ? true :
-		power == fullNameOfPower("8") ? true :
-		power == fullNameOfPower("9") ? true :
-		power == fullNameOfPower("10") ? true :
-		power == fullNameOfPower("J") ? true :
-		power == fullNameOfPower("Q") ? true :
-		power == fullNameOfPower("K") ? true :
-		power == fullNameOfPower("A") ? true : false;
-
-	while (!result)
-	{
-		cout << "Incorrect card power! Please try again!" << endl << "Ask for ";
-		cin >> power;
-	}
-}
-
-void symbolOfCard(string& power)
+void getTheSignOfPower(string& power)
 {
 	power = power == fullNameOfPower("2") ? "2" :
 		power == fullNameOfPower("3") ? "3" :
@@ -282,23 +282,52 @@ void symbolOfCard(string& power)
 		power == fullNameOfPower("10") ? "10" :
 		power == fullNameOfPower("J") ? "J" :
 		power == fullNameOfPower("Q") ? "Q" :
-		power == fullNameOfPower("K") ? "K" : "A";
+		power == fullNameOfPower("K") ? "K" :
+		power == fullNameOfPower("A") ? "A" : "0";
+}
+
+void enteringCard(Player& player, string& power)
+{
+	toLower(power);
+
+	getTheSignOfPower(power);
+
+	int index = power != "0" ? findCardInPlayersDeck(power, player) : 0;
+
+	if (power != "0" && index != -1)
+	{
+		return;
+	}
+
+	cout << "Incorrect card power! Please enter card power which is in your collection!\nAsk for ";
+	cin >> power;
+
+	enteringCard(player, power);
+}
+
+void enteringPack(Player& player, string& power)
+{
+	toLower(power);
+
+	getTheSignOfPower(power);
+
+	if (power != "0")
+	{
+		return;
+	}
+
+	cout << "Incorrect card power! Please try again!\nAsk for ";
+	cin >> power;
+
+	enteringPack(player, power);
 }
 
 void playerIsAskingCards(Player& player, string& power, short gamePart = 1)
 {
-	cout << endl;
-
-	gamePart == 1 ? printPlayersDeck(player) : printPlayersPacks(player);
-
-	cout << "\nAsk for ";
+	cout << "Ask for ";
 	cin >> power;
 
-	correctCard(power);
-
-	// if the asked card is in the deck || packs of the player
-
-	symbolOfCard(power);
+	gamePart == 1 ? enteringCard(player, power) : enteringPack(player, power);
 }
 
 string askPower(Player& ask, Player& give, short gamePart = 1)
@@ -307,6 +336,8 @@ string askPower(Player& ask, Player& give, short gamePart = 1)
 
 	if (ask.name == "computer")
 	{
+		gamePart == 1 ? printPlayersDeck(give) : printPlayersPacks(give);
+
 		int randomCard = gamePart == 1 ? rand() % ask.deckOfThePlayer.size() : rand() % ask.packs.size();
 
 		power = gamePart == 1 ? ask.deckOfThePlayer[randomCard].power : ask.packs[randomCard];
@@ -321,6 +352,17 @@ string askPower(Player& ask, Player& give, short gamePart = 1)
 	return givePower(power, ask, give, gamePart) ? "true" : power;
 }
 
+void playerHasNoCardsInHisDeck(vector<Card>& deck, vector<Player>& players)
+{
+	if (players.front().deckOfThePlayer.empty())
+	{
+		deck.empty() ? draw(players.back().deckOfThePlayer, players.front()) : draw(deck, players.front());
+		return;
+	}
+
+	deck.empty() ? draw(players.front().deckOfThePlayer, players.back()) : draw(deck, players.back());
+}
+
 void gamePartOne(vector<Card>& deck, vector<Player>& players)
 {
 	if (deck.empty() && players.front().deckOfThePlayer.empty() && players.back().deckOfThePlayer.empty())
@@ -329,10 +371,17 @@ void gamePartOne(vector<Card>& deck, vector<Player>& players)
 		return;
 	}
 
+	addPackToPlayersCollection(players.front());
+
+	if (players.front().deckOfThePlayer.empty() || players.back().deckOfThePlayer.empty())
+	{
+		playerHasNoCardsInHisDeck(deck, players);
+	}
+
 	string card;
 	string get = askPower(players.front(), players.back());
 
-	if (get != "true")
+	if (get != "true" && !deck.empty())
 	{
 		card = draw(deck, players.front());
 	}
@@ -342,6 +391,7 @@ void gamePartOne(vector<Card>& deck, vector<Player>& players)
 		reverse(players.begin(), players.end());
 	}
 
+	cout << "\n";
 	gamePartOne(deck, players);
 }
 
@@ -378,11 +428,16 @@ int main()
 	deal(deck, players.front());
 	deal(deck, players.back());
 
-	//cout << endl;
+	cout << "\n";
 
 	gamePartOne(deck, players);
 
-	// if the user is in second place - reverse the vector
+	if (players.front().name == "computer")
+	{
+		reverse(players.begin(), players.end());
+	}
+
+	cout << "\n";
 
 	gamePartTwo(players);
 
